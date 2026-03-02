@@ -126,8 +126,14 @@ if prompt_input := st.chat_input("質問を入力してください..."):
                         st.session_state.retrieved_docs = retrieved_docs
                         
                         # Get response from chain
+                        # Retrieve response from chain
                         response = chain.invoke(prompt_input)
-                        st.markdown(response)
+                        # debug log response content (could be empty)
+                        print(f"Chain response: {repr(response)}")
+                        if not response:
+                            st.warning("AIから回答が返ってきませんでした。")
+                        else:
+                            st.markdown(response)
                         
                         # Display referenced articles
                         if "retrieved_docs" in st.session_state and st.session_state.retrieved_docs:
