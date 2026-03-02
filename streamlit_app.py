@@ -24,6 +24,24 @@ except KeyError as e:
     st.info("Please set up .streamlit/secrets.toml or Streamlit Cloud Secrets.")
     has_secrets = False
 
+# --- Authentication ---
+# Require a password before showing the chat
+if "authenticated" not in st.session_state:
+    st.session_state.authenticated = False
+
+if not st.session_state.authenticated:
+    st.title("🔒 Login Required")
+    pwd = st.text_input("パスワードを入力してください", type="password")
+    if st.button("ログイン"):
+        # compare against secret or hardcoded value
+        expected = st.secrets.get("APP_PASSWORD", "")
+        if pwd and expected and pwd == expected:
+            st.session_state.authenticated = True
+            st.experimental_rerun()
+        else:
+            st.error("パスワードが正しくありません。再試行してください。")
+    st.stop()
+
 # --- Sidebar ---
 st.sidebar.title("Configuration")
 st.sidebar.info("Using keys from Streamlit Secrets.")
