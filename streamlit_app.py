@@ -70,22 +70,14 @@ def get_rag_chain():
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)
 
-    # Store retrieved docs for later display
-    def save_docs(docs):
-        st.session_state.retrieved_docs = docs
-        # Debug: log metadata structure
-        for i, doc in enumerate(docs):
-            print(f"Doc {i} metadata: {getattr(doc, 'metadata', {})}")
-        return docs
-
     # Build Chain
     chain = (
-        {"context": retriever | save_docs | format_docs, "question": RunnablePassthrough()}
+        {"context": retriever | format_docs, "question": RunnablePassthrough()}
         | prompt
         | llm
         | StrOutputParser()
     )
-    return chain
+    return chain, retriever
 
 # --- Chat Interface ---
 # Display existing messages
@@ -107,8 +99,14 @@ if prompt_input := st.chat_input("質問を入力してください..."):
         with st.chat_message("assistant"):
             with st.spinner("Outlineを検索して回答を生成中..."):
                 try:
-                    chain = get_rag_chain()
-                    if chain:
+                    result = get_rag_chain()
+                    if result:
+                        chain, retriever = result
+                        # Get documents directly from retriever
+                        retrieved_docs = retriever.invoke(prompt_input)
+                        st.session_state.retrieved_docs = retrieved_docs
+                        
+                        # Get response from chain
                         response = chain.invoke(prompt_input)
                         st.markdown(response)
                         
