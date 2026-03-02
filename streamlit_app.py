@@ -37,7 +37,8 @@ if not st.session_state.authenticated:
         expected = st.secrets.get("APP_PASSWORD", "")
         if pwd and expected and pwd == expected:
             st.session_state.authenticated = True
-            st.experimental_rerun()
+            # re-run to show the chat interface
+            st.rerun()
         else:
             st.error("パスワードが正しくありません。再試行してください。")
     st.stop()
