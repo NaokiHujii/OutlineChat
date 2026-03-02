@@ -68,7 +68,8 @@ def get_rag_chain():
 
     # Initialize Gemini (Uses GOOGLE_API_KEY from env)
     llm = ChatGoogleGenerativeAI(
-        model="gemini-2.5-flash",
+        # model="gemini-2.5-flash",
+        model="gemma-3-27b-it",
         temperature=0
     )
 
