@@ -70,9 +70,14 @@ def get_rag_chain():
     def format_docs(docs):
         return "\n\n".join(doc.page_content for doc in docs)
 
+    # Store retrieved docs for later display
+    def save_docs(docs):
+        st.session_state.retrieved_docs = docs
+        return docs
+
     # Build Chain
     chain = (
-        {"context": retriever | format_docs, "question": RunnablePassthrough()}
+        {"context": retriever | save_docs | format_docs, "question": RunnablePassthrough()}
         | prompt
         | llm
         | StrOutputParser()
@@ -103,6 +108,21 @@ if prompt_input := st.chat_input("質問を入力してください..."):
                     if chain:
                         response = chain.invoke(prompt_input)
                         st.markdown(response)
+                        
+                        # Display referenced articles
+                        if "retrieved_docs" in st.session_state and st.session_state.retrieved_docs:
+                            st.markdown("---")
+                            st.markdown("**参考資料:**")
+                            for i, doc in enumerate(st.session_state.retrieved_docs, 1):
+                                # Extract URL from metadata if available
+                                if hasattr(doc, 'metadata') and 'url' in doc.metadata:
+                                    title = doc.metadata.get('title', f'記事 {i}')
+                                    url = doc.metadata['url']
+                                    st.markdown(f"[{title}]({url})")
+                                elif hasattr(doc, 'metadata') and 'source' in doc.metadata:
+                                    title = doc.metadata.get('title', doc.metadata['source'])
+                                    st.markdown(f"• {title}")
+                        
                         # Add assistant response to State
                         st.session_state.messages.append({"role": "assistant", "content": response})
                 except Exception as e:
