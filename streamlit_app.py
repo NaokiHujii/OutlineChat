@@ -73,6 +73,9 @@ def get_rag_chain():
     # Store retrieved docs for later display
     def save_docs(docs):
         st.session_state.retrieved_docs = docs
+        # Debug: log metadata structure
+        for i, doc in enumerate(docs):
+            print(f"Doc {i} metadata: {getattr(doc, 'metadata', {})}")
         return docs
 
     # Build Chain
@@ -114,13 +117,22 @@ if prompt_input := st.chat_input("質問を入力してください..."):
                             st.markdown("---")
                             st.markdown("**参考資料:**")
                             for i, doc in enumerate(st.session_state.retrieved_docs, 1):
-                                # Extract URL from metadata if available
-                                if hasattr(doc, 'metadata') and 'url' in doc.metadata:
-                                    title = doc.metadata.get('title', f'記事 {i}')
-                                    url = doc.metadata['url']
+                                # Debug: show metadata structure
+                                metadata = getattr(doc, 'metadata', {})
+                                
+                                # Try different metadata keys for URL
+                                url = None
+                                title = f"記事 {i}"
+                                
+                                if isinstance(metadata, dict):
+                                    # Try common URL keys
+                                    url = metadata.get('url') or metadata.get('source') or metadata.get('link') or metadata.get('href')
+                                    # Try title keys
+                                    title = metadata.get('title') or metadata.get('page_title') or metadata.get('name') or title
+                                
+                                if url:
                                     st.markdown(f"[{title}]({url})")
-                                elif hasattr(doc, 'metadata') and 'source' in doc.metadata:
-                                    title = doc.metadata.get('title', doc.metadata['source'])
+                                else:
                                     st.markdown(f"• {title}")
                         
                         # Add assistant response to State
