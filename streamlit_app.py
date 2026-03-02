@@ -112,6 +112,14 @@ if prompt_input := st.chat_input("質問を入力してください..."):
                         response = chain.invoke(prompt_input)
                         st.markdown(response)
                         
+                        # Display debug info
+                        st.write(f"**Debug:** retrieved_docs in session: {'retrieved_docs' in st.session_state}")
+                        if "retrieved_docs" in st.session_state:
+                            st.write(f"**Debug:** number of docs: {len(st.session_state.retrieved_docs) if st.session_state.retrieved_docs else 0}")
+                            for i, doc in enumerate(st.session_state.retrieved_docs or []):
+                                metadata = getattr(doc, 'metadata', {})
+                                st.write(f"**Doc {i} metadata:** {metadata}")
+                        
                         # Display referenced articles
                         if "retrieved_docs" in st.session_state and st.session_state.retrieved_docs:
                             st.markdown("---")
